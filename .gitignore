@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+
+# VSCode
+.vscode/
+
+# Logs
+logs/
+
+# Outputs
+output/
+
+# Input data
+input/
+
+# Test data
+test_data/
+
+# Temporary
+*.tmp
+*.log
+
+# Docker
+*.tar
+
+# AWS
+.cache/
