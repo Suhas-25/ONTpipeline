@@ -2,6 +2,33 @@ import os
 from utils import run_command
 
 
+def select_bam():
+    """Use ARTIC-trimmed coordinate-sorted BAM when primer trimming ran."""
+
+    if os.path.exists("output/trimmed.sorted.bam"):
+
+        return "output/trimmed.sorted.bam"
+
+    return "output/alignment.sorted.bam"
+
+
+def write_uncompressed_vcf(config, compressed_vcf, output_vcf):
+
+    image = config["docker"]["core"]
+
+    cmd = f"""
+docker run --rm \
+-v $(pwd):/pipeline \
+-w /pipeline \
+{image} \
+bash -c '
+gunzip -c {compressed_vcf} > {output_vcf}
+'
+"""
+
+    run_command(cmd)
+
+
 def run(config):
 
     print("\n========== VARIANT CALLING ==========\n")
@@ -43,17 +70,13 @@ def run_bcftools(config):
     # Select BAM
     # ---------------------------------------
 
-    if os.path.exists("output/alignment.primerclipped.bam"):
-
-        bam = "output/alignment.primerclipped.bam"
-
-    else:
-
-        bam = "output/alignment.sorted.bam"
+    bam = select_bam()
 
     reference = config["input"]["reference"]
 
-    output = "output/variants.bcftools.vcf"
+    compressed_output = "output/variants.bcftools.vcf.gz"
+
+    uncompressed_output = "output/variants.bcftools.vcf"
 
     cmd = f"""
 docker run --rm \
@@ -67,12 +90,14 @@ bcftools mpileup \
 | bcftools call \
 -m -v \
 -Oz \
--o output/variants.bcftools.vcf.gz && \
-bcftools index output/variants.bcftools.vcf.gz
+-o {compressed_output} && \
+bcftools index {compressed_output}
 '
 """
 
     run_command(cmd)
+
+    write_uncompressed_vcf(config, compressed_output, uncompressed_output)
 
     print("bcftools completed.")
 
@@ -87,13 +112,7 @@ def run_longshot(config):
 
     image = config["docker"]["longshot"]
 
-    if os.path.exists("output/alignment.primerclipped.bam"):
-
-        bam = "output/alignment.primerclipped.bam"
-
-    else:
-
-        bam = "output/alignment.sorted.bam"
+    bam = select_bam()
 
     reference = config["input"]["reference"]
 
@@ -179,13 +198,7 @@ def run_clair3(config):
 
     image = config["docker"]["clair3"]
 
-    if os.path.exists("output/alignment.primerclipped.bam"):
-
-        bam = "output/alignment.primerclipped.bam"
-
-    else:
-
-        bam = "output/alignment.sorted.bam"
+    bam = select_bam()
 
     reference = config["input"]["reference"]
 
@@ -212,5 +225,11 @@ run_clair3.sh \
 """
 
     run_command(cmd)
+
+    write_uncompressed_vcf(
+        config,
+        "output/clair3/merge_output.vcf.gz",
+        "output/clair3/merge_output.vcf",
+    )
 
     print("Clair3 completed.")

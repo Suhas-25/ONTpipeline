@@ -73,12 +73,15 @@ samtools index
 ▼
 Primer Trimming
 │
-BEDPE provided?
+BED provided?
 │
 ├── YES
 │ │
 │ ▼
-│ BamClipper
+│ ARTIC align_trim
+│ │
+│ ▼
+│ samtools sort/index
 │
 └── NO
 │ │
@@ -235,19 +238,21 @@ alignment.sorted.bam.bai
 
 Primer Trimming
 Uses
-BamClipper
+ARTIC align_trim
 Input
-BEDPE file
+BED primer scheme
 Behaviour
-If BEDPE file is supplied
+If BED file is supplied
 ↓
 Primer trimming performed
+↓
+Trimmed BAM is coordinate sorted and indexed
 Otherwise
 ↓
 Pipeline continues
 ↓
 Warning displayed
-Primer BEDPE not provided.
+Primer BED not provided.
 
 Variants within primer-binding regions should be interpreted with caution.
 
@@ -311,8 +316,8 @@ hkubal/clair3:latest
 Longshot
 staphb/longshot:latest
 
-BamClipper
-suhas0/bamclipper_lsdv:v1
+ARTIC align_trim
+align_trim:v1
 
 snpEff
 suhas0/snpeff_lsdv:v1
@@ -418,7 +423,11 @@ samtools
 
 ↓
 
-Optional BamClipper
+Optional ARTIC align_trim
+
+↓
+
+samtools sort/index
 
 ↓
 

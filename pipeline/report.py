@@ -55,7 +55,7 @@ def run(config):
         report.write(f"Alignment          : {config['alignment']['tool']}\n")
 
         if bed:
-            report.write("Primer Trimming    : BamClipper\n")
+            report.write("Primer Trimming    : ARTIC align_trim\n")
         else:
             report.write("Primer Trimming    : Skipped\n")
 
@@ -78,6 +78,14 @@ def run(config):
 
         report.write(
             f"BAM Index          : {exists('output/alignment.sorted.bam.bai')}\n"
+        )
+
+        report.write(
+            f"Trimmed BAM        : {exists('output/trimmed.sorted.bam')}\n"
+        )
+
+        report.write(
+            f"Trimmed BAM Index  : {exists('output/trimmed.sorted.bam.bai')}\n"
         )
 
         report.write(
