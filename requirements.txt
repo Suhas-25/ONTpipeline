@@ -1,1 +1,2 @@
-PyYAML>=6.0
+# Read the YAML workflow configuration.
+PyYAML==6.0.3

@@ -1,465 +1,175 @@
-
 # ONTpipeline
 
-A modular, Docker-based Oxford Nanopore (ONT) sequencing analysis pipeline for
-Lumpy Skin Disease Virus (LSDV).
+> A modular, Docker-based Oxford Nanopore Technologies (ONT) analysis pipeline for Lumpy Skin Disease Virus (LSDV).
 
-The pipeline is designed to support both Whole Genome Sequencing (WGS) and
-Amplicon Sequencing workflows while allowing users to choose different tools
-for each analysis stage through a simple YAML configuration file.
+ONTpipeline turns ONT FASTQ reads into quality-control results, a reference alignment, variants, a consensus sequence, annotated results, and a final report. Each stage is selected through one YAML configuration file, so the workflow can be adapted without editing Python code.
 
-The project is intended for integration into the Dharini platform and follows a
-modular architecture where every analysis step is implemented independently.
+## At a glance
 
----
+| Input | Processing | Main outputs |
+| --- | --- | --- |
+| ONT FASTQ (`.fastq.gz`) | QC → alignment → optional primer trimming → variant calling | BAM, VCF, consensus FASTA, annotation, report |
+| LSDV reference FASTA | Docker containers keep tools reproducible | Files are written to `output/` |
 
-# Features
+## Features
 
-✔ Oxford Nanopore FASTQ input
+- Docker-based, reproducible tool execution
+- YAML-controlled workflow and tool selection
+- NanoPlot or fastp quality control
+- minimap2 alignment with sorted and indexed BAM output
+- Optional ARTIC `align_trim` primer trimming
+- Variant calling with bcftools, Longshot, Medaka, or Clair3
+- Consensus creation with bcftools or Medaka
+- snpEff annotation using a custom LSDV database
+- Text report generation
 
-✔ Modular workflow
+## Workflow
 
-✔ Docker-based execution
-
-✔ YAML configuration
-
-✔ Optional primer trimming
-
-✔ Multiple variant callers
-
-✔ Multiple consensus methods
-
-✔ Variant annotation
-
-✔ Final report generation
-
-✔ Easily extensible
-
----
-
-# Pipeline Workflow
-
+```text
+FASTQ reads
+   │
+   ├── Quality control ────────────── NanoPlot / fastp / optional NanoFilt
+   │
+   ├── Alignment ──────────────────── minimap2 → samtools sort + index
+   │
+   ├── Primer trimming (optional) ─── ARTIC align_trim → samtools sort + index
+   │
+   ├── Variant calling ────────────── bcftools / Longshot / Medaka / Clair3
+   │
+   ├── Consensus ──────────────────── bcftools / Medaka
+   │
+   ├── Annotation ─────────────────── snpEff
+   │
+   └── Final report
 ```
 
-FASTQ
-│
-▼
-Input Validation
-│
-▼
-Load Configuration
-(default.yaml)
-│
-▼
-Quality Control
-│
-├── NanoPlot
-│ │
-│ └── NanoFilt (Optional)
-│
-└── fastp
-│
-▼
-Alignment
-│
-└── minimap2
-│
-▼
-samtools sort
-│
-▼
-samtools index
-│
-▼
-Primer Trimming
-│
-BED provided?
-│
-├── YES
-│ │
-│ ▼
-│ ARTIC align_trim
-│ │
-│ ▼
-│ samtools sort/index
-│
-└── NO
-│ │
-│ ▼
-│ Warning
-│ Continue analysis
-│
-▼
-Variant Calling
-│
-├── bcftools
-├── Longshot
-├── Medaka
-└── Clair3
-│
-▼
-Consensus Generation
-│
-├── bcftools
-└── Medaka
-│
-▼
-Annotation
-│
-└── snpEff
-│
-▼
-Pipeline Report
+## Quick start
 
+### 1. Prerequisites
 
-Directory Structure
-ONTpipeline/
+- Python 3.10 or newer
+- Docker Engine, with the Docker daemon running
+- Permission to run Docker commands
 
-config/
-    default.yaml
-
-pipeline/
-    main.py
-    workflow.py
-    utils.py
-
-    qc.py
-    align.py
-    primer.py
-    variant.py
-    consensus.py
-    annotation.py
-    report.py
-
-input/
-
-reference/
-
-output/
-
-logs/
-
-docs/
-
-test_data/
-
-README.md
-
-Architecture
-The pipeline follows a modular architecture.
-Each module performs one specific task.
-main.py
-
-↓
-
-workflow.py
-
-↓
-
-qc.py
-
-↓
-
-align.py
-
-↓
-
-primer.py
-
-↓
-
-variant.py
-
-↓
-
-consensus.py
-
-↓
-
-annotation.py
-
-↓
-
-report.py
-Each module can be modified independently without affecting the rest of the pipeline.
-
-Configuration
-The entire pipeline is controlled using
-config/default.yaml
-No Python code needs to be modified to change the workflow.
-Example
-variant:
-
-    tool: bcftools
-Change to
-variant:
-
-    tool: clair3
-The pipeline will automatically use Clair3.
-
-Supported QC Tools
-NanoPlot
-Purpose
-    • Read quality assessment
-    • Read length distribution
-    • QC visualization
-Produces
-NanoPlot-report.html
-
-NanoStats.txt
-
-NanoFilt (Optional)
-Runs only when enabled.
-Purpose
-    • Remove low-quality reads
-    • Remove short reads
-    • Optional head/tail cropping
-Supports
-Recommended Mode
-
-Manual Mode
-
-fastp
-Alternative QC tool.
-Provides
-    • Read filtering
-    • Quality trimming
-    • Adapter trimming
-    • HTML report
-    • JSON report
-
-Alignment
-Current aligner
-minimap2
-Output
-alignment.sorted.bam
-
-alignment.sorted.bam.bai
-
-Primer Trimming
-Uses
-ARTIC align_trim
-Input
-BED primer scheme
-Behaviour
-If BED file is supplied
-↓
-Primer trimming performed
-↓
-Trimmed BAM is coordinate sorted and indexed
-Otherwise
-↓
-Pipeline continues
-↓
-Warning displayed
-Primer BED not provided.
-
-Variants within primer-binding regions should be interpreted with caution.
-
-Variant Calling
-Currently supports
-bcftools
-
-Longshot
-
-Medaka
-
-Clair3
-Selection is controlled using
-variant:
-
-    tool:
-
-Consensus Generation
-Supported
-bcftools
-
-Medaka
-Produces
-Consensus FASTA sequence.
-
-Annotation
-Uses
-snpEff
-with
-Custom LSDV database.
-Produces
-Annotated VCF.
-
-Report
-The final report summarizes
-    • QC
-    • Alignment
-    • Variant Calling
-    • Consensus
-    • Annotation
-Future versions may support HTML/PDF reports.
-
-Docker Images
-Core Image
-suhas0/lsdv_core:v4
-Contains
-    • Python
-    • Java
-    • minimap2
-    • samtools
-    • bcftools
-    • fastp
-    • NanoPlot
-
-Medaka
-ontresearch/medaka:latest
-
-Clair3
-hkubal/clair3:latest
-
-Longshot
-staphb/longshot:latest
-
-ARTIC align_trim
-align_trim:v1
-
-snpEff
-suhas0/snpeff_lsdv:v1
-Contains
-    • snpEff
-    • Custom LSDV database
-
-Running the Pipeline
-python3 pipeline/main.py
-The pipeline automatically
-    • Loads configuration
-    • Performs QC
-    • Aligns reads
-    • Performs optional primer trimming
-    • Calls variants
-    • Generates consensus
-    • Annotates variants
-    • Creates final report
-
-Outputs
-output/
-
-qc/
-
-NanoPlot-report.html
-
-NanoStats.txt
-
-fastp.html
-
-fastp.json
-
-filtered.fastq.gz (optional)
-
-alignment.sorted.bam
-
-alignment.sorted.bam.bai
-
-variants.bcftools.vcf.gz
-
-variants.longshot.vcf
-
-medaka/
-
-clair3/
-
-bcftools_consensus.fasta
-
-medaka_consensus.fasta
-
-annotated.vcf
-
-pipeline_report.txt
-
-Design Philosophy
-The pipeline was designed around five principles.
-1. Modular
-Every analysis stage is isolated into its own Python module.
-This simplifies maintenance and future development.
-
-2. Configurable
-Pipeline behaviour is controlled entirely through YAML.
-No Python code changes are required to switch tools.
-
-3. Reproducible
-Every bioinformatics tool runs inside a Docker container.
-This ensures identical execution across systems.
-
-4. Extensible
-New tools can be added with minimal code changes.
-Examples
-    • New aligners
-    • New variant callers
-    • Additional annotation tools
-
-5. Platform Ready
-The pipeline was developed with Dharini platform integration in mind.
-The platform only needs to
-    • Upload user inputs
-    • Update YAML configuration
-    • Execute
-python3 pipeline/main.py
-    • Collect output files
-
-Current Supported Workflow
-FASTQ
-
-↓
-
-NanoPlot / fastp
-
-↓
-
-Optional NanoFilt
-
-↓
-
-minimap2
-
-↓
-
-samtools
-
-↓
-
-Optional ARTIC align_trim
-
-↓
-
-samtools sort/index
-
-↓
-
-bcftools / Longshot / Medaka / Clair3
-
-↓
-
-Consensus
-
-↓
-
-snpEff
-
-↓
-
-Pipeline Report
-
-run by --python3 /ONTpipeline/main.py
-
-✔ Oxford Nanopore FASTQ (.fastq.gz) input
-
-# Prerequisites
-
-Before running the pipeline ensure the following are installed.
-
-## Software
-
-- Python 3.10+
-- Docker Engine
-- Docker daemon running
-
-## Python dependency
+Install the Python dependency:
 
 ```bash
 pip install -r requirements.txt
+```
+
+### 2. Set your inputs
+
+Edit [`config/default.yaml`](config/default.yaml) and set the paths for your reads and reference:
+
+```yaml
+input:
+  fastq: input/SRR25593956.fastq.gz
+  reference: reference/lsdv_reference.fasta
+  bed: primers.bed  # optional ARTIC primer-scheme BED file
+```
+
+If you do not want primer trimming, leave `bed` empty:
+
+```yaml
+bed:
+```
+
+### 3. Run the pipeline
+
+From the project directory:
+
+```bash
+python3 pipeline/main.py --config config/default.yaml
+```
+
+## Configuration
+
+All workflow choices are in [`config/default.yaml`](config/default.yaml). For example, select a variant caller:
+
+```yaml
+variant:
+  tool: bcftools
+```
+
+Supported values are `bcftools`, `longshot`, `medaka`, and `clair3`.
+
+| Section | Controls |
+| --- | --- |
+| `input` | FASTQ, reference FASTA, and optional primer BED paths |
+| `threads` | Number of CPU threads used by supported tools |
+| `qc` / `filter` | Quality-control and filtering behaviour |
+| `alignment` | Alignment tool selection |
+| `variant` | Variant caller selection |
+| `consensus` | Consensus method selection |
+| `docker` | Docker image names used by each stage |
+
+## Primer trimming
+
+Primer trimming uses ARTIC `align_trim` when a BED primer scheme is supplied. The trimmed BAM is coordinate-sorted and indexed before variant calling. Without a BED file, the pipeline continues using the original alignment; variants in primer-binding regions should then be interpreted carefully.
+
+## Outputs
+
+Results are written to `output/`.
+
+| Output | Description |
+| --- | --- |
+| `output/qc/` | NanoPlot or fastp quality-control reports |
+| `output/alignment.sorted.bam` | Sorted reference alignment |
+| `output/alignment.sorted.bam.bai` | Alignment index |
+| `output/trimmed.sorted.bam` | Primer-trimmed BAM, when enabled |
+| `output/variants.*.vcf*` | Variant calls from the selected caller |
+| `output/bcftools_consensus.fasta` | bcftools consensus, when selected |
+| `output/medaka_consensus.fasta` | Medaka consensus, when selected |
+| `output/annotated.vcf` | snpEff-annotated variants |
+| `output/pipeline_report.txt` | Final pipeline summary |
+
+## Docker images
+
+| Stage | Image |
+| --- | --- |
+| Core tools | `suhas0/lsdv_core:v4` |
+| Medaka | `ontresearch/medaka:latest` |
+| Clair3 | `hkubal/clair3:latest` |
+| Longshot | `staphb/longshot:latest` |
+| Primer trimming | `align_trim:v1` |
+| snpEff annotation | `suhas0/snpeff_lsdv:v1` |
+
+## Project structure
+
+```text
+ONTpipeline/
+├── config/
+│   └── default.yaml        # Workflow settings
+├── pipeline/
+│   ├── main.py             # Command-line entry point
+│   ├── workflow.py         # Runs stages in order
+│   ├── qc.py               # Quality control
+│   ├── align.py            # Reference alignment
+│   ├── primer.py           # Primer trimming
+│   ├── variant.py          # Variant calling
+│   ├── consensus.py        # Consensus generation
+│   ├── annotation.py       # snpEff annotation
+│   └── report.py           # Final report
+├── input/                  # Input reads
+├── reference/              # Reference data
+├── Dockerfile/             # align_trim Docker image definition
+├── requirements.txt
+└── README.md
+```
+
+## Pipeline design
+
+The pipeline is organised as independent modules. `main.py` loads the configuration, then `workflow.py` runs QC, alignment, primer trimming, variant calling, consensus generation, annotation, and reporting in sequence. This modular design keeps individual stages easy to maintain and replace.
+
+## Troubleshooting
+
+| Problem | Check |
+| --- | --- |
+| `No module named 'yaml'` | Run `pip install -r requirements.txt` |
+| Docker command fails | Confirm Docker is running with `docker ps` |
+| Input file not found | Verify paths in `config/default.yaml` from the project directory |
+| Primer trimming fails | Confirm the BED file exists and matches the reference/amplicon scheme |
+
+---
+
+Built for ONT sequencing analysis and planned Dharini platform integration.

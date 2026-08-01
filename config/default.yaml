@@ -9,7 +9,7 @@ input:
   reference: reference/lsdv_reference.fasta
 
   # Optional ARTIC BED primer scheme
-  bed: primers.bed
+  bed: primer.bed
 
 
 # =====================================================
@@ -92,7 +92,7 @@ fastp:
 
 nanofilt:
 
-  enabled: false
+  enabled: true
 
   # Used only when filter.mode = manual
   min_quality: 10
@@ -119,7 +119,7 @@ alignment:
 
 primer:
 
-  enabled: false
+  enabled: true
 
 
 # =====================================================

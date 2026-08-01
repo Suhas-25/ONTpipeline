@@ -32,6 +32,10 @@ def run(config):
 
     print("\n========== PRIMER TRIMMING ==========\n")
 
+    if not config["primer"].get("enabled", False):
+        print("Primer trimming disabled in configuration. Skipping ARTIC align_trim.")
+        return
+
     bed = config["input"]["bed"]
 
     if not bed:
@@ -60,10 +64,11 @@ def run(config):
 docker run --rm \
 -v $(pwd):/data \
 -w /data \
+--entrypoint bash \
 {image} \
-bash -c "
+-c "
 align_trim \
--b {input_bam} \
+--samfile {input_bam} \
 --report {report} \
 {bed} \
 > {trimmed_bam} \
