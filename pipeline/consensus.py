@@ -1,4 +1,7 @@
+import os
+
 from utils import make_directory, run_command
+from variant import select_bam
 
 
 def run(config):
@@ -84,13 +87,9 @@ def run_medaka(config):
 
     image = config["docker"]["medaka"]
 
-    bam = "output/alignment.sorted.bam"
-
     reference = config["input"]["reference"]
 
-    threads = config["threads"]
-
-    output_dir = "output/medaka_consensus"
+    output_dir = "output/medaka"
 
     # Medaka writes predictions and consensus files into this directory.
     # Create it before starting the container so the bind-mounted path exists.
@@ -100,13 +99,19 @@ def run_medaka(config):
 
     consensus = f"{output_dir}/consensus.fasta"
 
-    model = config["medaka"]["consensus_model"]
+    model = config["medaka"]["model"]
+
+    read_group_option = "--ignore_read_groups" if config["medaka"].get(
+        "ignore_read_groups", False
+    ) else ""
 
     # ---------------------------------------
     # Step 1 : inference
     # ---------------------------------------
 
-    if model:
+    if not os.path.isfile(predictions):
+
+        bam = select_bam(config)
 
         cmd = f"""
 docker run --rm \
@@ -114,24 +119,16 @@ docker run --rm \
 -w /pipeline \
 {image} \
 medaka inference \
-{bam} \
-{predictions} \
---model {model}
-"""
-
-    else:
-
-        cmd = f"""
-docker run --rm \
--v $(pwd):/pipeline \
--w /pipeline \
-{image} \
-medaka inference \
+--model {model} \
+{read_group_option} \
 {bam} \
 {predictions}
 """
 
-    run_command(cmd)
+        run_command(cmd)
+
+    else:
+        print("Reusing Medaka predictions created during variant calling.")
 
     # ---------------------------------------
     # Step 2 : sequence

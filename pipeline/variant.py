@@ -1,13 +1,20 @@
 import os
-from utils import run_command
+from utils import make_directory, run_command
 
 
-def select_bam():
-    """Use ARTIC-trimmed coordinate-sorted BAM when primer trimming ran."""
+def select_bam(config):
+    """Select the BAM produced by the currently configured workflow."""
 
-    if os.path.exists("output/trimmed.sorted.bam"):
+    primer_enabled = config["primer"].get("enabled", False)
+    trimmed_bam = "output/trimmed.sorted.bam"
 
-        return "output/trimmed.sorted.bam"
+    if primer_enabled and os.path.exists(trimmed_bam):
+
+        print("Using primer-trimmed BAM.")
+
+        return trimmed_bam
+
+    print("Using untrimmed alignment BAM.")
 
     return "output/alignment.sorted.bam"
 
@@ -70,7 +77,7 @@ def run_bcftools(config):
     # Select BAM
     # ---------------------------------------
 
-    bam = select_bam()
+    bam = select_bam(config)
 
     reference = config["input"]["reference"]
 
@@ -112,7 +119,7 @@ def run_longshot(config):
 
     image = config["docker"]["longshot"]
 
-    bam = select_bam()
+    bam = select_bam(config)
 
     reference = config["input"]["reference"]
 
@@ -144,43 +151,62 @@ def run_medaka(config):
 
     image = config["docker"]["medaka"]
 
-    fastq = config["input"]["fastq"]
-
     reference = config["input"]["reference"]
 
-    output = "output/medaka"
+    bam = select_bam(config)
 
-    threads = config["threads"]
+    output_dir = "output/medaka"
 
-    model = config["medaka"]["variant_model"]
+    make_directory(output_dir)
 
-    if model:
+    predictions = f"{output_dir}/predictions.hdf"
 
+    output_vcf = f"{output_dir}/medaka.vcf"
+
+    model = config["medaka"]["model"]
+
+    read_group_option = "--ignore_read_groups" if config["medaka"].get(
+        "ignore_read_groups", False
+    ) else ""
+
+    # Predictions are run-specific. Docker may own files created in the
+    # bind-mounted output directory, so clean an old file from Docker rather
+    # than with host-side os.remove().
+    if os.path.exists(predictions):
         cmd = f"""
 docker run --rm \
 -v $(pwd):/pipeline \
 -w /pipeline \
+--entrypoint rm \
 {image} \
-medaka_variant \
--i {fastq} \
--r {reference} \
--o {output} \
--m {model} \
--t {threads}
+-f {predictions}
 """
 
-    else:
+        run_command(cmd)
 
-        cmd = f"""
+    cmd = f"""
 docker run --rm \
 -v $(pwd):/pipeline \
 -w /pipeline \
 {image} \
-medaka_variant \
--i {fastq} \
--r {reference} \
--o {output} \
--t {threads}
+medaka inference \
+--model {model} \
+{read_group_option} \
+{bam} \
+{predictions}
+"""
+
+    run_command(cmd)
+
+    cmd = f"""
+docker run --rm \
+-v $(pwd):/pipeline \
+-w /pipeline \
+{image} \
+medaka vcf \
+{predictions} \
+{reference} \
+{output_vcf}
 """
 
     run_command(cmd)
@@ -198,7 +224,7 @@ def run_clair3(config):
 
     image = config["docker"]["clair3"]
 
-    bam = select_bam()
+    bam = select_bam(config)
 
     reference = config["input"]["reference"]
 

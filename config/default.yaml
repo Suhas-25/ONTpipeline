@@ -132,7 +132,7 @@ variant:
   # longshot
   # medaka
   # clair3
-  tool: bcftools
+  tool: medaka
 
 
 # =====================================================
@@ -141,9 +141,12 @@ variant:
 
 medaka:
 
-  variant_model:
+  # One inference model is shared by Medaka variant calling and consensus.
+  # With primer.enabled: true and a BED file, both use trimmed.sorted.bam.
+  model: r1041_e82_400bps_sup_v5.2.0
 
-  consensus_model: r1041_e82_400bps_sup_v5.2.0
+  # ARTIC align_trim can assign multiple read groups; process them together.
+  ignore_read_groups: true
 
 
 # =====================================================
@@ -165,7 +168,7 @@ consensus:
 
   # bcftools
   # medaka
-  tool: bcftools
+  tool: medaka
 
 
 # =====================================================
