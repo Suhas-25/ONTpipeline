@@ -3,6 +3,30 @@ import os
 from utils import run_command
 
 
+def ensure_reference_index(config, reference):
+    """Create the samtools FASTA index when it is not already available."""
+
+    fasta_index = f"{reference}.fai"
+
+    if os.path.isfile(fasta_index):
+        print(f"Reference FASTA index found: {fasta_index}")
+        return
+
+    print(f"Creating reference FASTA index: {fasta_index}")
+
+    image = config["docker"]["core"]
+
+    cmd = f"""
+docker run --rm \\
+-v $(pwd):/pipeline \\
+-w /pipeline \\
+{image} \\
+samtools faidx {reference}
+"""
+
+    run_command(cmd)
+
+
 def run(config):
 
     print("\n========== ALIGNMENT ==========\n")
@@ -12,6 +36,8 @@ def run(config):
     reference = config["input"]["reference"]
 
     threads = config["threads"]
+
+    ensure_reference_index(config, reference)
 
     # ------------------------------------------------------
     # Select FASTQ

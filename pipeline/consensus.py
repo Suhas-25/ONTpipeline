@@ -1,4 +1,4 @@
-from utils import run_command
+from utils import make_directory, run_command
 
 
 def run(config):
@@ -91,6 +91,10 @@ def run_medaka(config):
     threads = config["threads"]
 
     output_dir = "output/medaka_consensus"
+
+    # Medaka writes predictions and consensus files into this directory.
+    # Create it before starting the container so the bind-mounted path exists.
+    make_directory(output_dir)
 
     predictions = f"{output_dir}/predictions.hdf"
 
