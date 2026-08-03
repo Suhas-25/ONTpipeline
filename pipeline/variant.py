@@ -46,10 +46,6 @@ def run(config):
 
         run_bcftools(config)
 
-    elif tool == "longshot":
-
-        run_longshot(config)
-
     elif tool == "medaka":
 
         run_medaka(config)
@@ -107,40 +103,6 @@ bcftools index {compressed_output}
     write_uncompressed_vcf(config, compressed_output, uncompressed_output)
 
     print("bcftools completed.")
-
-
-# ----------------------------------------------------------
-# Longshot
-# ----------------------------------------------------------
-
-def run_longshot(config):
-
-    print("Running Longshot...")
-
-    image = config["docker"]["longshot"]
-
-    bam = select_bam(config)
-
-    reference = config["input"]["reference"]
-
-    output = "output/variants.longshot.vcf"
-
-    cmd = f"""
-docker run --rm \
--v $(pwd):/pipeline \
--w /pipeline \
-{image} \
-longshot \
---bam {bam} \
---ref {reference} \
---out {output}
-"""
-
-    run_command(cmd)
-
-    compress_and_index_vcf(config, output)
-
-    print("Longshot completed.")
 
 
 # ----------------------------------------------------------

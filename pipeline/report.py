@@ -105,10 +105,6 @@ def run(config):
         )
 
         report.write(
-            f"Longshot           : {exists('output/variants.longshot.vcf')}\n"
-        )
-
-        report.write(
             f"Medaka             : {exists('output/medaka/medaka.vcf')}\n"
         )
 

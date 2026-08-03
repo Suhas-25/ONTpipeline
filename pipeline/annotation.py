@@ -17,10 +17,6 @@ def run(config):
 
         vcf = "output/variants.bcftools.vcf.gz"
 
-    elif variant_tool == "longshot":
-
-        vcf = "output/variants.longshot.vcf.gz"
-
     elif variant_tool == "medaka":
 
         vcf = "output/medaka/medaka.vcf.gz"

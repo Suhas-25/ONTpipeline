@@ -42,10 +42,6 @@ def run_bcftools(config):
 
         vcf = "output/variants.bcftools.vcf.gz"
 
-    elif variant_tool == "longshot":
-
-        vcf = "output/variants.longshot.vcf.gz"
-
     elif variant_tool == "clair3":
 
         vcf = "output/clair3/merge_output.vcf.gz"

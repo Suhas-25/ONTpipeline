@@ -18,7 +18,7 @@ ONTpipeline turns ONT FASTQ reads into quality-control results, a reference alig
 - NanoPlot or fastp quality control
 - minimap2 alignment with sorted and indexed BAM output
 - Optional ARTIC `align_trim` primer trimming
-- Variant calling with bcftools, Longshot, Medaka, or Clair3
+- Variant calling with bcftools, Medaka, or Clair3
 - Consensus creation with bcftools or Medaka
 - snpEff annotation using a custom LSDV database
 - Text report generation
@@ -34,7 +34,7 @@ FASTQ reads
    │
    ├── Primer trimming (optional) ─── ARTIC align_trim → samtools sort + index
    │
-   ├── Variant calling ────────────── bcftools / Longshot / Medaka / Clair3
+   ├── Variant calling ────────────── bcftools / Medaka / Clair3
    │
    ├── Consensus ──────────────────── bcftools / Medaka
    │
@@ -114,7 +114,7 @@ variant:
   tool: bcftools
 ```
 
-Supported values are `bcftools`, `longshot`, `medaka`, and `clair3`.
+Supported values are `bcftools`, `medaka`, and `clair3`.
 
 | Section | Controls |
 | --- | --- |
@@ -153,7 +153,6 @@ Results are written to `output/`.
 | Core tools | `suhas0/lsdv_core:v4` |
 | Medaka | `ontresearch/medaka:latest` |
 | Clair3 | `hkubal/clair3:latest` |
-| Longshot | `staphb/longshot:latest` |
 | Primer trimming | `align_trim:v1` |
 | snpEff annotation | `suhas0/snpeff_lsdv:v1` |
 

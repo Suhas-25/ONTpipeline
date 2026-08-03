@@ -44,8 +44,6 @@ docker:
 
   clair3: hkubal/clair3:latest
 
-  longshot: staphb/longshot:latest
-
   align_trim: align_trim:v1
 
   snpeff: suhas0/snpeff_lsdv:v1
@@ -129,10 +127,9 @@ primer:
 variant:
 
   # bcftools
-  # longshot
   # medaka
   # clair3
-  tool: medaka
+  tool: clair3
 
 
 # =====================================================
