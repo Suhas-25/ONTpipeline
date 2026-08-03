@@ -44,7 +44,7 @@ def run_bcftools(config):
 
     elif variant_tool == "longshot":
 
-        vcf = "output/variants.longshot.vcf"
+        vcf = "output/variants.longshot.vcf.gz"
 
     elif variant_tool == "clair3":
 
@@ -52,7 +52,7 @@ def run_bcftools(config):
 
     elif variant_tool == "medaka":
 
-        vcf = "output/medaka/medaka.vcf"
+        vcf = "output/medaka/medaka.vcf.gz"
 
     else:
 

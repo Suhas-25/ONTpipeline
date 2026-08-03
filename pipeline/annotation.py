@@ -1,4 +1,4 @@
-from utils import run_command
+from utils import compress_and_index_vcf, run_command
 
 
 def run(config):
@@ -19,11 +19,11 @@ def run(config):
 
     elif variant_tool == "longshot":
 
-        vcf = "output/variants.longshot.vcf"
+        vcf = "output/variants.longshot.vcf.gz"
 
     elif variant_tool == "medaka":
 
-        vcf = "output/medaka/medaka.vcf"
+        vcf = "output/medaka/medaka.vcf.gz"
 
     elif variant_tool == "clair3":
 
@@ -50,5 +50,7 @@ LSDV \
 """
 
     run_command(cmd)
+
+    compress_and_index_vcf(config, output)
 
     print("Annotation completed.")

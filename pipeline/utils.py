@@ -62,6 +62,34 @@ def make_directory(path):
     os.makedirs(path, exist_ok=True)
 
 
+def compress_and_index_vcf(config, vcf):
+    """Create or validate a BGZF-compressed, indexed VCF for downstream use."""
+
+    image = config["docker"]["core"]
+
+    if vcf.endswith(".gz"):
+        compressed_vcf = vcf
+        command = f"bcftools index -f {compressed_vcf}"
+    else:
+        compressed_vcf = f"{vcf}.gz"
+        command = (
+            f"bcftools view -Oz -o {compressed_vcf} {vcf} && "
+            f"bcftools index -f {compressed_vcf}"
+        )
+
+    cmd = f"""
+docker run --rm \
+-v $(pwd):/pipeline \
+-w /pipeline \
+{image} \
+bash -c '{command}'
+"""
+
+    run_command(cmd)
+
+    return compressed_vcf
+
+
 def warning(message):
 
     print(f"[WARNING] {message}")

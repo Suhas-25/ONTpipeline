@@ -1,5 +1,5 @@
 import os
-from utils import make_directory, run_command
+from utils import compress_and_index_vcf, make_directory, run_command
 
 
 def select_bam(config):
@@ -138,6 +138,8 @@ longshot \
 
     run_command(cmd)
 
+    compress_and_index_vcf(config, output)
+
     print("Longshot completed.")
 
 
@@ -211,6 +213,8 @@ medaka vcf \
 
     run_command(cmd)
 
+    compress_and_index_vcf(config, output_vcf)
+
     print("Medaka completed.")
 
 
@@ -251,6 +255,8 @@ run_clair3.sh \
 """
 
     run_command(cmd)
+
+    compress_and_index_vcf(config, "output/clair3/merge_output.vcf.gz")
 
     write_uncompressed_vcf(
         config,

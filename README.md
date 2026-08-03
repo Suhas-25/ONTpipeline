@@ -45,6 +45,29 @@ FASTQ reads
 
 ## Quick start
 
+### What users need before running
+
+Users do **not** need to prepare output folders or software indexes manually. Start with the following project layout:
+
+```text
+ONTpipeline/
+├── config/default.yaml
+├── input/
+│   └── sample.fastq.gz          # Required: ONT reads
+├── reference/
+│   └── reference.fasta          # Required: matching reference genome
+└── primer_scheme.bed            # Required only for amplicon sequencing
+```
+
+| Workflow | Required user files | Configuration |
+| --- | --- | --- |
+| Whole-genome sequencing (WGS) | FASTQ and reference FASTA | Set `primer.enabled: false` |
+| Amplicon sequencing | FASTQ, reference FASTA, and matching primer BED | Set `primer.enabled: true` and provide `input.bed` |
+
+For amplicon data, the BED contig names and coordinates must match the reference FASTA exactly. The pipeline creates the FASTA `.fai` index automatically when it is missing.
+
+The pipeline creates these folders and files itself: `output/`, `output/qc/`, BAM indexes, Medaka prediction files, VCFs, consensus FASTA files, and reports.
+
 ### 1. Prerequisites
 
 - Python 3.10 or newer
@@ -117,10 +140,10 @@ Results are written to `output/`.
 | `output/alignment.sorted.bam` | Sorted reference alignment |
 | `output/alignment.sorted.bam.bai` | Alignment index |
 | `output/trimmed.sorted.bam` | Primer-trimmed BAM, when enabled |
-| `output/variants.*.vcf*` | Variant calls from the selected caller |
+| `output/variants.*.vcf` and `.vcf.gz` + `.csi` | Plain user-readable and compressed/indexed variant calls |
 | `output/bcftools_consensus.fasta` | bcftools consensus, when selected |
 | `output/medaka_consensus.fasta` | Medaka consensus, when selected |
-| `output/annotated.vcf` | snpEff-annotated variants |
+| `output/annotated.vcf` and `.vcf.gz` + `.csi` | Plain user-readable and compressed/indexed snpEff annotation |
 | `output/pipeline_report.txt` | Final pipeline summary |
 
 ## Docker images

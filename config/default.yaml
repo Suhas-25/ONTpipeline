@@ -168,7 +168,7 @@ consensus:
 
   # bcftools
   # medaka
-  tool: medaka
+  tool: bcftools
 
 
 # =====================================================
